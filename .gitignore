@@ -1,0 +1,21 @@
+# Node / Angular
+**/node_modules/
+**/dist/
+**/.angular/
+**/cache/
+**/.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# System
+Thumbs.db
+desktop.ini
