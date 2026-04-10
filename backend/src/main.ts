@@ -14,8 +14,12 @@ async function bootstrap() {
     // Global Prefix
     app.setGlobalPrefix('api');
 
-    // CORS
-    app.enableCors();
+    // CORS - Permitir todo para pruebas de producción
+    app.enableCors({
+      origin: '*',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      credentials: true,
+    });
 
     // Global Validation
     app.useGlobalPipes(new ValidationPipe({
