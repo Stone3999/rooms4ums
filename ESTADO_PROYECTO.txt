@@ -1,0 +1,44 @@
+================================================================================
+INSTRUCCIONES PARA GEMINI (PRÓXIMAS SESIONES):
+Este archivo es la fuente de verdad sobre el estado del proyecto. 
+Al iniciar, léelo COMPLETAMENTE para entender el contexto actual, qué se ha hecho
+y qué falta. ACTUALIZA la sección "TUS APUNTES" después de cada cambio importante.
+================================================================================
+
+1.- TUS APUNTES (Estado Técnico)
+--------------------------------------------------------------------------------
+ESTADO GENERAL: Estructura base funcional. Auth avanzado (WebAuthn) y Sockets listos.
+
+FRONTEND (Angular 19):
+- Hecho: Shell de la app, Login/Register (Biometría), Rework de Sidebar (Inicio independiente, Feeds con Popular/Recientes/Voz, Mis Comunidades), Rutas para Recientes y Chats-Voz centralizados.
+- Hecho: Sistema de Voice Chat centralizado con selección de Categoría (Room) y Tema. Vista global y filtrada por foro.
+- Falta: Buscador avanzado, Subida de archivos en posts.
+- Último realizado: Implementación completa del Voice Chat Centralizado (Frontend + Backend).
+
+BACKEND (NestJS):
+- Hecho: Auth con WebAuthn, integración Triple-DB (PG, Mongo, Redis).
+- Hecho: Voice Gateway rediseñado con persistencia en Redis, gestión de canales efímeros, categorías y temas.
+- Falta: Lógica de Forum (Mongo), Implementar Mail/SMS.
+- Último realizado: Rediseño del VoiceGateway para soportar el nuevo flujo centralizado.
+
+--------------------------------------------------------------------------------
+2.- MIS APUNTES (Ideas y Pendientes de David)
+--------------------------------------------------------------------------------
+a. Barra de búsqueda Avanzada:
+   - Tendrá su propia vista.
+   - Resultados filtrables: Rooms, Posts, Chats de voz y Actividades.
+
+b. Archivos en Posts:
+   - Capacidad de insertar PDFs, ZIPs e Imágenes.
+   - Si tiene imagen, debe ser el foco principal al entrar al post.
+
+c. Rework de Navegación (PRÓXIMO PASO):
+   - Inicio: Fuera de desplegables, hasta arriba.
+   - FEEDS (Desplegable): Popular, Recientes, Chat de Voz (Acceso directo).
+   - MIS COMUNIDADES: Rework del desplegable actual.
+   - Chat de Voz Centralizado: Los chats de voz ahora viven en un "Room" dedicado de voz, 
+     pero se categorizan por el nombre de los rooms (categorías).
+
+d. Voice Chat Extras:
+   - Integrar lectura automática del chat de voz (Text-to-Speech).
+================================================================================
