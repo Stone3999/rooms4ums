@@ -45,12 +45,16 @@ export class VoiceService {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      // En producción usará la URL del backend, en local usa el puerto 3000
-      const backendUrl = window.location.hostname === 'localhost' 
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const backendUrl = isLocal 
         ? 'http://127.0.0.1:3000' 
-        : window.location.origin.replace('frontend', 'backend'); // O pon tu URL real aquí
+        : 'https://rooms4ums.onrender.com'; // TU URL DE RENDER
       
-      this.socket = io(backendUrl);
+      console.log('[VOICE] Connecting to:', backendUrl);
+      this.socket = io(backendUrl, {
+        transports: ['websocket'], // Forzar websockets para evitar líos de CORS en el handshake inicial
+        upgrade: false
+      });
       this.setupSocketListeners();
     }
   }
