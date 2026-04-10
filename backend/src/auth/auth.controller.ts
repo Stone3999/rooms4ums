@@ -24,7 +24,9 @@ export class AuthController {
     private configService: ConfigService
   ) {
     this.rpID = this.configService.get<string>('RP_ID') || 'localhost';
-    this.origin = this.configService.get<string>('ORIGIN') || `http://${this.rpID}:4200`;
+    this.origin = this.configService.get<string>('ORIGIN') || `http://localhost:4200`;
+    
+    this.logger.log(`WebAuthn configured with RP_ID: ${this.rpID} and Origin: ${this.origin}`);
   }
 
   @Post('register')
