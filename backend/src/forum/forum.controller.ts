@@ -1,3 +1,4 @@
+/// <reference types="multer" />
 import { 
   Controller, Get, Post, Body, Param, Query, UseGuards, 
   UseInterceptors, UploadedFiles, Request, NotFoundException 
