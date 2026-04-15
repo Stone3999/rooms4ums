@@ -5,11 +5,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { LanguageService } from '../../core/services/language.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { RoomService, Room } from '../../core/services/room.service';
+import { ForumService, Post } from '../../core/services/forum.service';
+import { PostCreateComponent } from './post-create.component';
 
 @Component({
   selector: 'app-forum-feed',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterOutlet, PostCreateComponent],
   template: `
     <div class="feed-container">
       <h1 class="win-title">
@@ -42,36 +44,51 @@ import { RoomService, Room } from '../../core/services/room.service';
         </div>
       </div>
 
+      <!-- EDITOR DE POSTS -->
+      <div class="post-editor-overlay" *ngIf="isEditing">
+        <app-post-create 
+          [roomId]="roomId" 
+          (onCreated)="onPostCreated($event)" 
+          (onCancel)="isEditing = false"
+        ></app-post-create>
+      </div>
+
       <!-- Contenido dinámico (Voz, Actividades, Post) -->
       <router-outlet></router-outlet>
 
       <!-- REDDIT-LIKE FEED -->
       @if (isFeedActive()) {
-        <div class="reddit-feed">
-          @for (post of posts; track post.id) {
+        <div class="reddit-feed" *ngIf="!isLoading(); else loadingTpl">
+          @for (post of posts(); track post._id) {
             <div class="post-card win-panel">
-              <!-- Sidebar de votación -->
+              <!-- Sidebar de votación (Placeholder) -->
               <div class="vote-sidebar">
                 <button class="vote-btn up"><i class="pixelart-icons-font-arrow-up"></i></button>
-                <span class="score">{{ post.likes - post.dislikes }}</span>
+                <span class="score">0</span>
                 <button class="vote-btn down"><i class="pixelart-icons-font-arrow-down"></i></button>
               </div>
 
               <!-- Contenido principal -->
               <div class="post-main">
                 <div class="post-meta">
-                  <span class="author"><i class="pixelart-icons-font-user"></i> {{ post.author }}</span>
+                  <span class="author"><i class="pixelart-icons-font-user"></i> {{ post.authorName }}</span>
                   <span class="dot">•</span>
-                  <span class="date">{{ post.date }}</span>
+                  <span class="date">{{ post.createdAt | date:'short' }}</span>
                 </div>
                 
                 <h2 class="post-title">{{ post.title }}</h2>
-                <p class="post-excerpt">{{ post.excerpt }}</p>
+                
+                <!-- Vista previa de imagen si existe -->
+                <div class="post-preview-img" *ngIf="getFirstImage(post)">
+                  <img [src]="getFirstImage(post)" alt="Preview">
+                </div>
+
+                <p class="post-excerpt">{{ post.content | slice:0:200 }}...</p>
 
                 <div class="post-footer">
                   <div class="footer-left">
                     <button class="footer-action">
-                      <i class="pixelart-icons-font-message"></i> {{ post.commentsCount || 0 }} {{ langService.translate('COMMENTS') }}
+                      <i class="pixelart-icons-font-message"></i> {{ post.commentCount || 0 }} {{ langService.translate('COMMENTS') }}
                     </button>
                     <div class="translate-container">
                       <select class="win-select mini" (change)="translatePost(post, $event)" (click)="$event.stopPropagation()">
@@ -86,15 +103,27 @@ import { RoomService, Room } from '../../core/services/room.service';
                     </div>
                   </div>
 
-                  <button class="win-button mini view-btn" (click)="goToPost(post.id)">
+                  <button class="win-button mini view-btn" (click)="goToPost(post._id)">
                     {{ langService.translate('VIEW_POST') }} <i class="pixelart-icons-font-arrow-right"></i>
                   </button>
                 </div>
               </div>
             </div>
           }
+          @if (posts().length === 0) {
+            <div class="no-posts win-panel">
+              <p>AÚN NO HAY MENSAJES EN ESTA SALA. ¡SÉ EL PRIMERO!</p>
+            </div>
+          }
         </div>
       }
+
+      <ng-template #loadingTpl>
+        <div class="loading-tpl">
+          <div class="spinner"></div>
+          <p>CARGANDO FEED...</p>
+        </div>
+      </ng-template>
 
       <!-- MODAL/PROMPT DE LOGIN -->
       <div class="login-prompt-overlay" *ngIf="showLoginPrompt">
@@ -120,6 +149,19 @@ import { RoomService, Room } from '../../core/services/room.service';
       gap: 10px;
       min-height: 45px;
     }
+    /* ... (rest of the styles) ... */
+    .post-editor-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); z-index: 1000;
+      display: flex; justify-content: center; align-items: center; padding: 20px;
+    }
+
+    .post-preview-img { margin: 10px 0; max-height: 300px; overflow: hidden; border: 1px solid #333; }
+    .post-preview-img img { width: 100%; height: auto; object-fit: cover; }
+
+    .no-posts { padding: 40px; text-align: center; }
+    .loading-tpl { padding: 40px; text-align: center; }
+
     .left-actions, .right-actions { 
       display: flex; 
       gap: 10px; 
@@ -159,22 +201,6 @@ import { RoomService, Room } from '../../core/services/room.service';
       display: flex;
       align-items: center;
     }
-
-    .reaction { margin-right: 15px; font-size: 0.8rem; cursor: pointer; }
-    .reaction:hover { color: var(--accent-color); }
-    .reaction i { margin-right: 3px; }
-    small { color: var(--text-secondary); }
-    strong { color: var(--accent-color); }
-
-    .actions-cell {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-    }
-
-    .reactions-left { display: flex; }
-    .translate-right { display: flex; }
 
     .win-select.mini {
       font-size: 0.7rem;
@@ -233,24 +259,24 @@ export class ForumFeedComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private roomService = inject(RoomService);
+  private forumService = inject(ForumService);
   public authService = inject(AuthService);
   public langService = inject(LanguageService);
   private transService = inject(TranslationService);
 
   roomId: string = '';
   room = signal<Room | null>(null);
+  posts = signal<Post[]>([]);
+  isLoading = signal(false);
+  isEditing = false;
   showLoginPrompt: boolean = false;
-
-  posts = [
-    { id: 1, author: 'ADMIN_01', title: 'REGLAS DE LA SALA', excerpt: 'PROHIBIDO EL SPAM Y CUALQUIER TIPO DE CONTENIDO MALICIOSO EN ESTA RED.', likes: 45, dislikes: 2, date: '24/03/2026', commentsCount: 12 },
-    { id: 2, author: 'USER_88', title: 'NUEVA ESTRATEGIA EN AJEDREZ', excerpt: '¿ALGUIEN HA PROBADO LA DEFENSA FRANCESA EN EL PROTOCOLO INTERACTIVO?', likes: 12, dislikes: 0, date: '23/03/2026', commentsCount: 5 }
-  ];
 
   ngOnInit() {
     this.route.params.subscribe(async params => {
       this.roomId = params['id'] || this.route.snapshot.parent?.params['id'];
       if (this.roomId) {
         await this.loadRoomDetails();
+        await this.loadPosts();
       }
     });
   }
@@ -264,13 +290,42 @@ export class ForumFeedComponent implements OnInit {
     }
   }
 
+  async loadPosts() {
+    this.isLoading.set(true);
+    try {
+      const res = await this.forumService.getPostsByRoom(this.roomId);
+      this.posts.set(res.data);
+    } catch (error) {
+      console.error('Error loading posts:', error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
   isFeedActive(): boolean {
     return this.route.children.length === 0;
   }
 
   refreshFeed() {
-    console.log('Actualizando feed...');
-    this.loadRoomDetails();
+    this.loadPosts();
+  }
+
+  createNewPost() {
+    if (this.authService.isLoggedIn()) {
+      this.isEditing = true;
+    } else {
+      this.showLoginPrompt = true;
+    }
+  }
+
+  onPostCreated(post: Post) {
+    this.isEditing = false;
+    this.posts.update(prev => [post, ...prev]);
+  }
+
+  getFirstImage(post: Post): string | null {
+    const img = post.attachments?.find(a => a.type.startsWith('image/'));
+    return img ? img.url : null;
   }
 
   async translatePost(post: any, event: any) {
@@ -278,7 +333,7 @@ export class ForumFeedComponent implements OnInit {
     if (!targetLang) return;
 
     if (!post.originalTitle) post.originalTitle = post.title;
-    if (!post.originalExcerpt) post.originalExcerpt = post.excerpt;
+    if (!post.originalContent) post.originalContent = post.content;
 
     const originalOptionText = event.target.options[event.target.selectedIndex].text;
     event.target.options[event.target.selectedIndex].text = '...';
@@ -286,22 +341,14 @@ export class ForumFeedComponent implements OnInit {
     try {
       const currentLang = this.langService.currentLang();
       post.title = await this.transService.translateText(post.originalTitle, targetLang, currentLang);
-      post.excerpt = await this.transService.translateText(post.originalExcerpt, targetLang, currentLang);
+      post.content = await this.transService.translateText(post.originalContent, targetLang, currentLang);
     } finally {
       event.target.options[event.target.selectedIndex].text = originalOptionText;
       event.target.value = '';
     }
   }
 
-  createNewPost() {
-    if (this.authService.isLoggedIn()) {
-      console.log('Abriendo editor de post...');
-    } else {
-      this.showLoginPrompt = true;
-    }
-  }
-
-  goToPost(postId: number) {
+  goToPost(postId: string) {
     this.router.navigate(['post', postId], { relativeTo: this.route });
   }
 }

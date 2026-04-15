@@ -67,5 +67,9 @@ export const routes: Routes = [
         path: 'perfil', 
         loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) 
     },
+    { 
+        path: 'buscar', 
+        loadComponent: () => import('./pages/search/search.component').then(m => m.SearchComponent) 
+    },
     { path: '**', redirectTo: '' }
 ];

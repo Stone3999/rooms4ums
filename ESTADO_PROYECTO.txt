@@ -7,19 +7,23 @@ y qué falta. ACTUALIZA la sección "TUS APUNTES" después de cada cambio import
 
 1.- TUS APUNTES (Estado Técnico)
 --------------------------------------------------------------------------------
-ESTADO GENERAL: Estructura base funcional. Auth avanzado (WebAuthn) y Sockets listos.
+ESTADO GENERAL: Sistema v1.0 prácticamente completo. Foros en MongoDB, Búsqueda Avanzada y Gestión de Archivos funcional.
 
 FRONTEND (Angular 19):
-- Hecho: Shell de la app, Login/Register (Biometría), Rework de Sidebar (Inicio independiente, Feeds con Popular/Recientes/Voz, Mis Comunidades), Rutas para Recientes y Chats-Voz centralizados.
-- Hecho: Sistema de Voice Chat centralizado con selección de Categoría (Room) y Tema. Vista global y filtrada por foro.
-- Falta: Buscador avanzado, Subida de archivos en posts.
-- Último realizado: Implementación completa del Voice Chat Centralizado (Frontend + Backend).
+- Hecho: Shell de la app, Login/Register (Biometría), Rework de Sidebar completo.
+- Hecho: Sistema de Voice Chat centralizado.
+- Hecho: Vista de Búsqueda Avanzada con filtros (Rooms, Posts, Voz).
+- Hecho: Creación de Posts con adjuntos (Imágenes, PDF, ZIP) y visualización detallada con imágenes destacadas.
+- Hecho: Sistema de comentarios real conectado a MongoDB.
+- Último realizado: Implementación de UI de Búsqueda Avanzada y Rework de Foros con Multimedia.
 
 BACKEND (NestJS):
 - Hecho: Auth con WebAuthn, integración Triple-DB (PG, Mongo, Redis).
-- Hecho: Voice Gateway rediseñado con persistencia en Redis, gestión de canales efímeros, categorías y temas.
-- Falta: Lógica de Forum (Mongo), Implementar Mail/SMS.
-- Último realizado: Rediseño del VoiceGateway para soportar el nuevo flujo centralizado.
+- Hecho: ForumModule con MongoDB para Posts y Comentarios (Relacional/Separado).
+- Hecho: SearchModule para búsquedas globales en PG, Mongo y Redis.
+- Hecho: Integración de subida de archivos a Supabase en Foros.
+- Falta: Implementar Mail/SMS real (requiere credenciales SMTP/API).
+- Último realizado: Creación del SearchModule y ForumModule completo.
 
 --------------------------------------------------------------------------------
 2.- MIS APUNTES (Ideas y Pendientes de David)

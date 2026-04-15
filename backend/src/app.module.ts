@@ -11,6 +11,8 @@ import { AppService } from './app.service';
 import { DiagnosticController } from './diagnostic/diagnostic.controller';
 import { VoiceModule } from './voice/voice.module';
 import { RoomsModule } from './rooms/rooms.module';
+import { ForumModule } from './forum/forum.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -38,8 +40,9 @@ import { RoomsModule } from './rooms/rooms.module';
     }),
 
     VoiceModule,
-
     RoomsModule,
+    ForumModule,
+    SearchModule,
   ],
   controllers: [AppController, DiagnosticController],
   providers: [AppService],

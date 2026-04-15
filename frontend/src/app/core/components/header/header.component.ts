@@ -20,7 +20,12 @@ import { LanguageService, Language } from '../../services/language.service';
       <div class="center-section">
         <div class="search-bar">
           <i class="pixelart-icons-font-search"></i>
-          <input type="text" placeholder="BUSCAR..." class="win-input" />
+          <input 
+            type="text" 
+            [placeholder]="langService.translate('SEARCH_PLACEHOLDER') || 'BUSCAR...'" 
+            class="win-input" 
+            (keyup.enter)="onSearch($event)"
+          />
         </div>
 
         <!-- SELECTOR DE IDIOMA RETRO -->
@@ -153,5 +158,13 @@ export class HeaderComponent {
 
   changeLang(event: any) {
     this.langService.setLanguage(event.target.value as Language);
+  }
+
+  onSearch(event: any) {
+    const query = event.target.value;
+    if (query?.trim()) {
+      this.router.navigate(['/buscar'], { queryParams: { q: query.trim() } });
+      event.target.value = ''; // Limpiar input después de buscar
+    }
   }
 }
