@@ -89,7 +89,7 @@ import { FormsModule } from '@angular/forms';
               <li *ngFor="let post of results().posts" [routerLink]="['/foro', post.roomId, 'post', post._id]">
                 <div class="post-header">
                   <strong>{{ post.title }}</strong>
-                  <span class="author">@{{ post.authorName }}</span>
+                  <span class="author">{{ '@' }}{{ post.authorName }}</span>
                 </div>
                 <p class="excerpt">{{ post.content | slice:0:100 }}...</p>
               </li>

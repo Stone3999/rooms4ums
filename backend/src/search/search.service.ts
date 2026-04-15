@@ -18,7 +18,7 @@ export class SearchService {
       activities: [], // Placeholder
     };
 
-    const searchTasks = [];
+    const searchTasks: Promise<void>[] = [];
 
     // Buscar en Rooms (Postgres)
     if (!type || type === 'rooms') {
@@ -49,7 +49,7 @@ export class SearchService {
       searchTasks.push(
         (async () => {
           const keys = await this.redis.keys('voice_channel:*');
-          const channels = [];
+          const channels: any[] = [];
           for (const key of keys) {
             const channel = await this.redis.hgetall(key);
             if (

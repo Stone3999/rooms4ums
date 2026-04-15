@@ -49,7 +49,7 @@ export class ForumController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     const { title, content, roomId, tags } = body;
-    const attachments = [];
+    const attachments: { url: string; type: string; name: string }[] = [];
 
     if (files && files.length > 0) {
       for (const file of files) {
