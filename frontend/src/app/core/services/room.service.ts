@@ -18,7 +18,16 @@ export interface Room {
 })
 export class RoomService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/rooms';
+  private platformId = inject(PLATFORM_ID);
+  private apiUrl = '';
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocal ? 'http://127.0.0.1:3000' : 'https://rooms4ums.onrender.com';
+      this.apiUrl = `${baseUrl}/api/rooms`;
+    }
+  }
 
   private getHeaders() {
     const token = localStorage.getItem('token');

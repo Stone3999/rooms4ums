@@ -9,13 +9,17 @@ import { firstValueFrom, catchError, tap } from 'rxjs';
 export class AuthService {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
-  private apiUrl = '/api/auth';
+  private apiUrl = '';
 
   private _isLoggedIn = signal<boolean>(false);
   get isLoggedIn() { return this._isLoggedIn.asReadonly(); }
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocal ? 'http://127.0.0.1:3000' : 'https://rooms4ums.onrender.com';
+      this.apiUrl = `${baseUrl}/api/auth`;
+
       const token = localStorage.getItem('token');
       this._isLoggedIn.set(!!token);
     }

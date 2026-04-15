@@ -46,19 +46,18 @@ export class VoiceService {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const backendUrl = isLocal 
-        ? 'http://127.0.0.1:3000' 
-        : 'https://rooms4ums.onrender.com'; // TU URL DE RENDER
-      
+      const backendUrl = isLocal
+        ? 'http://127.0.0.1:3000'
+        : 'https://rooms4ums.onrender.com';
+
       console.log('[VOICE] Connecting to:', backendUrl);
       this.socket = io(backendUrl, {
-        transports: ['websocket'], // Forzar websockets para evitar líos de CORS en el handshake inicial
+        transports: ['websocket'],
         upgrade: false
       });
       this.setupSocketListeners();
     }
   }
-
   private setupSocketListeners() {
     this.socket.on('connect', () => console.log('[VOICE] Socket connected:', this.socket.id));
 

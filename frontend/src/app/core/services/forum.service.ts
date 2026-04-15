@@ -33,7 +33,15 @@ export interface Comment {
 export class ForumService {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
-  private apiUrl = '/api/forum';
+  private apiUrl = '';
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocal ? 'http://127.0.0.1:3000' : 'https://rooms4ums.onrender.com';
+      this.apiUrl = `${baseUrl}/api/forum`;
+    }
+  }
 
   private getHeaders() {
     let headers = new HttpHeaders();

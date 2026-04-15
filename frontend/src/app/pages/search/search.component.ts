@@ -170,11 +170,21 @@ export class SearchComponent implements OnInit {
   langService = inject(LanguageService);
   route = inject(ActivatedRoute);
   http = inject(HttpClient);
+  private platformId = inject(PLATFORM_ID);
 
   searchQuery = '';
   activeType = 'all';
   results = signal<any>({ rooms: [], posts: [], voiceChannels: [], activities: [] });
   isLoading = signal(false);
+  private apiUrl = '';
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocal ? 'http://127.0.0.1:3000' : 'https://rooms4ums.onrender.com';
+      this.apiUrl = `${baseUrl}/api/search`;
+    }
+  }
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -191,7 +201,7 @@ export class SearchComponent implements OnInit {
     this.isLoading.set(true);
     const typeParam = this.activeType === 'all' ? '' : `&type=${this.activeType}`;
     
-    this.http.get<any>(`/api/search?q=${this.searchQuery}${typeParam}`)
+    this.http.get<any>(`${this.apiUrl}?q=${this.searchQuery}${typeParam}`)
       .subscribe({
         next: (res) => {
           this.results.set(res);
