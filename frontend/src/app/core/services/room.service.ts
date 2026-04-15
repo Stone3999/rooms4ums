@@ -18,7 +18,7 @@ export interface Room {
 })
 export class RoomService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://127.0.0.1:3000/api/rooms';
+  private apiUrl = '/api/rooms';
 
   private getHeaders() {
     const token = localStorage.getItem('token');

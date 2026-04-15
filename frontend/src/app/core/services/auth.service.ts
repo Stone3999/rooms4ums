@@ -9,7 +9,7 @@ import { firstValueFrom, catchError, tap } from 'rxjs';
 export class AuthService {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
-  private apiUrl = 'http://127.0.0.1:3000/api/auth';
+  private apiUrl = '/api/auth';
 
   private _isLoggedIn = signal<boolean>(false);
   get isLoggedIn() { return this._isLoggedIn.asReadonly(); }
