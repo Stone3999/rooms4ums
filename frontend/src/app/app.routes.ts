@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
     { 
@@ -27,10 +28,12 @@ export const routes: Routes = [
         children: [
           {
             path: 'voz',
+            canActivate: [authGuard],
             loadComponent: () => import('./pages/voice-view/voice-view.component').then(m => m.VoiceViewComponent)
           },
           {
             path: 'actividades',
+            canActivate: [authGuard],
             loadComponent: () => import('./pages/game-view/game-view.component').then(m => m.GameViewComponent)
           },
           {
@@ -49,6 +52,7 @@ export const routes: Routes = [
     },
     { 
         path: 'admin', 
+        canActivate: [authGuard],
         loadComponent: () => import('./pages/admin/admin.component').then(m => m.AdminComponent) 
     },
     { 
@@ -65,6 +69,7 @@ export const routes: Routes = [
     },
     { 
         path: 'perfil', 
+        canActivate: [authGuard],
         loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) 
     },
     { 
