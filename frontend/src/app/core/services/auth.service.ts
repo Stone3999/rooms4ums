@@ -133,4 +133,24 @@ export class AuthService {
       }
     }
   }
+
+  // --- ADMIN FUNCTIONS ---
+
+  async getAllUsers() {
+    return firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/admin/users`, { headers: this.getHeaders() })
+    );
+  }
+
+  async updateUserStatus(userId: string, status: string) {
+    return firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/admin/users/${userId}/status`, { status }, { headers: this.getHeaders() })
+    );
+  }
+
+  async deleteUser(userId: string) {
+    return firstValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/admin/users/${userId}`, { headers: this.getHeaders() })
+    );
+  }
 }
