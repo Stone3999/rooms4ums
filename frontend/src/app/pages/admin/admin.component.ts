@@ -187,7 +187,13 @@ export class AdminComponent implements OnInit {
   // Modal logic
   showRoomModal = false;
   editingRoom: Room | null = null;
-  roomForm = {
+  roomForm: {
+    name: string;
+    slug: string;
+    description: string;
+    icon: string;
+    status: 'ACTIVE' | 'MAINTENANCE' | 'CONSTRUCTION' | 'ARCHIVED';
+  } = {
     name: '',
     slug: '',
     description: '',
