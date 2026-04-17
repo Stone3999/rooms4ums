@@ -16,8 +16,8 @@ export class AuthService {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const baseUrl = isLocal ? 'http://127.0.0.1:3000' : 'https://rooms4ums.onrender.com';
+      // Forzamos el uso del backend en Render para evitar problemas de red local (como en la uni)
+      const baseUrl = 'https://rooms4ums.onrender.com';
       this.apiUrl = `${baseUrl}/api/auth`;
 
       const token = localStorage.getItem('token');

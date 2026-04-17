@@ -45,10 +45,8 @@ export class VoiceService {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const backendUrl = isLocal
-        ? 'http://127.0.0.1:3000'
-        : 'https://rooms4ums.onrender.com';
+      // Forzamos el uso del backend en Render
+      const backendUrl = 'https://rooms4ums.onrender.com';
 
       console.log('[VOICE] Connecting to:', backendUrl);
       this.socket = io(backendUrl, {

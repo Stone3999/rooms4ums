@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
@@ -23,8 +24,8 @@ export class RoomService {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const baseUrl = isLocal ? 'http://127.0.0.1:3000' : 'https://rooms4ums.onrender.com';
+      // Forzamos el uso del backend en Render
+      const baseUrl = 'https://rooms4ums.onrender.com';
       this.apiUrl = `${baseUrl}/api/rooms`;
     }
   }
