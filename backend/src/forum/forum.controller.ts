@@ -1,7 +1,7 @@
 /// <reference types="multer" />
 import { 
   Controller, Get, Post, Body, Param, Query, UseGuards, 
-  UseInterceptors, UploadedFiles, Request, NotFoundException 
+  UseInterceptors, UploadedFiles, Request, NotFoundException, InternalServerErrorException, Logger
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -11,6 +11,8 @@ import { StorageService } from '../storage/storage.service';
 
 @Controller('forum')
 export class ForumController {
+  private readonly logger = new Logger(ForumController.name);
+
   constructor(
     private readonly postsService: PostsService,
     private readonly commentsService: CommentsService,
@@ -54,26 +56,36 @@ export class ForumController {
 
     if (files && files.length > 0) {
       for (const file of files) {
-        const path = `forum/${Date.now()}-${file.originalname}`;
-        await this.storageService.uploadFile(file.buffer, path, file.mimetype);
-        const url = this.storageService.getFileUrl(path);
-        attachments.push({
-          url,
-          type: file.mimetype,
-          name: file.originalname,
-        });
+        try {
+          const path = `forum/${Date.now()}-${file.originalname}`;
+          await this.storageService.uploadFile(file.buffer, path, file.mimetype);
+          const url = this.storageService.getFileUrl(path);
+          attachments.push({
+            url,
+            type: file.mimetype,
+            name: file.originalname,
+          });
+        } catch (storageError: any) {
+          this.logger.error(`Error subiendo archivo ${file.originalname}: ${storageError.message}`);
+          // Continuamos para intentar guardar el post aunque falle la imagen
+        }
       }
     }
 
-    return this.postsService.create({
-      title,
-      content,
-      roomId,
-      authorId: req.user.userId,
-      authorName: req.user.username,
-      attachments,
-      tags: tags ? (Array.isArray(tags) ? tags : [tags]) : [],
-    });
+    try {
+      return await this.postsService.create({
+        title,
+        content,
+        roomId,
+        authorId: req.user.userId,
+        authorName: req.user.username,
+        attachments,
+        tags: tags ? (Array.isArray(tags) ? tags : [tags]) : [],
+      });
+    } catch (dbError: any) {
+      this.logger.error(`Error en BD al crear post: ${dbError.message}`);
+      throw new InternalServerErrorException('Error al guardar el post en la base de datos');
+    }
   }
 
   @Get('posts/:id/comments')
