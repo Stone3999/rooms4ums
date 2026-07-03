@@ -6,6 +6,7 @@ import { ActivityBarComponent } from './core/components/activity-bar/activity-ba
 import { NotificationsComponent } from './core/components/notifications/notifications.component';
 import { CommonModule } from '@angular/common';
 import { SoundService } from './core/services/sound.service';
+import { SeasonalThemeService } from './core/services/seasonal-theme.service';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +18,7 @@ import { SoundService } from './core/services/sound.service';
 export class AppComponent {
   private soundService = inject(SoundService);
   private router = inject(Router);
+  private seasonalTheme = inject(SeasonalThemeService);
   
   isSidebarOpen = true;
   isActivityBarOpen = false;

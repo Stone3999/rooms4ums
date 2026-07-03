@@ -7,11 +7,12 @@ import { TranslationService } from '../../core/services/translation.service';
 import { RoomService, Room } from '../../core/services/room.service';
 import { ForumService, Post } from '../../core/services/forum.service';
 import { PostCreateComponent } from './post-create.component';
+import { PointerHighlightDirective } from '../../core/directives/pointer-highlight.directive';
 
 @Component({
   selector: 'app-forum-feed',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet, PostCreateComponent],
+  imports: [CommonModule, RouterLink, RouterOutlet, PostCreateComponent, PointerHighlightDirective],
   template: `
     <div class="feed-container">
       <h1 class="win-title">
@@ -60,7 +61,7 @@ import { PostCreateComponent } from './post-create.component';
       @if (isFeedActive()) {
         <div class="reddit-feed" *ngIf="!isLoading(); else loadingTpl">
           @for (post of posts(); track post._id) {
-            <div class="post-card win-panel">
+            <div class="post-card win-panel" appPointerHighlight="lift">
               <!-- Sidebar de votación (Placeholder) -->
               <div class="vote-sidebar">
                 <button class="vote-btn up"><i class="pixelart-icons-font-arrow-up"></i></button>
