@@ -134,15 +134,18 @@ export class AuthController {
 
   // --- WEBAUTHN ENDPOINTS ---
   @UseGuards(AuthGuard('jwt'))
+  @Post('generate-registration-options')
   async generateRegOptions(@Request() req: any) {
     const userId = req.user.userId;
     const users = await this.sql`SELECT id, email, username FROM users WHERE id = ${userId}`;
     const user = users[0];
     const userCredentials = await this.sql`SELECT credential_id FROM user_credentials WHERE user_id = ${userId}`;
 
+    const rpID = this.configService.get<string>('RP_ID') || req.hostname || 'localhost';
+
     return await generateRegistrationOptions({
       rpName: 'ROOMS4UMS SYS',
-      rpID: this.rpID,
+      rpID: rpID,
       userID: Buffer.from(user.id), // Convertimos el string UUID a binario
       userName: user.email,
       userDisplayName: user.username,
@@ -157,11 +160,15 @@ export class AuthController {
   async verifyReg(@Request() req: any, @Body() body: any) {
     const userId = req.user.userId;
     const { registrationResponse, expectedChallenge } = body;
+    
+    const rpID = this.configService.get<string>('RP_ID') || req.hostname || 'localhost';
+    const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+
     const verification = await verifyRegistrationResponse({
       response: registrationResponse,
       expectedChallenge,
-      expectedOrigin: this.origin,
-      expectedRPID: this.rpID,
+      expectedOrigin: origin,
+      expectedRPID: rpID,
     });
 
     if (verification.verified && verification.registrationInfo) {
@@ -176,20 +183,22 @@ export class AuthController {
   }
 
   @Post('generate-authentication-options')
-  async generateAuthOptions(@Body('identifier') identifier: string) {
+  async generateAuthOptions(@Body('identifier') identifier: string, @Request() req: any) {
     const users = await this.sql`SELECT id FROM users WHERE email = ${identifier} OR username = ${identifier}`;
     if (users.length === 0) throw new BadRequestException('User not found');
     const userCredentials = await this.sql`SELECT credential_id FROM user_credentials WHERE user_id = ${users[0].id}`;
 
+    const rpID = this.configService.get<string>('RP_ID') || req.hostname || 'localhost';
+
     return await generateAuthenticationOptions({
-      rpID: this.rpID,
+      rpID: rpID,
       allowCredentials: userCredentials.map((c: any) => ({ id: c.credential_id, type: 'public-key' })),
       userVerification: 'preferred',
     });
   }
 
   @Post('verify-authentication')
-  async verifyAuth(@Body() body: any) {
+  async verifyAuth(@Body() body: any, @Request() req: any) {
     const { identifier, authenticationResponse, expectedChallenge } = body;
     const users = await this.sql`SELECT id, email, username FROM users WHERE email = ${identifier} OR username = ${identifier}`;
     if (users.length === 0) throw new BadRequestException('User not found');
@@ -199,11 +208,14 @@ export class AuthController {
     if (credentials.length === 0) throw new BadRequestException('Credential not found');
     const dbCredential = credentials[0];
 
+    const rpID = this.configService.get<string>('RP_ID') || req.hostname || 'localhost';
+    const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+
     const verification = await verifyAuthenticationResponse({
       response: authenticationResponse,
       expectedChallenge,
-      expectedOrigin: this.origin,
-      expectedRPID: this.rpID,
+      expectedOrigin: origin,
+      expectedRPID: rpID,
       credential: { id: dbCredential.credential_id, publicKey: Buffer.from(dbCredential.public_key, 'base64'), counter: dbCredential.counter },
     });
 
