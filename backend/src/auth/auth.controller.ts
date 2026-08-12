@@ -95,9 +95,15 @@ export class AuthController {
     const payload = { sub: user.id, username: user.username, email: user.email };
     const token = this.jwtService.sign(payload);
 
-    // GUARDAR SESIÓN EN REDIS (Pro way)
-    // Key: session:userId, Value: token (o metadata), TTL: 24h
-    await this.redis.set(`session:${user.id}`, token, 'EX', 86400);
+    // GUARDAR SESIÓN EN REDIS con Timeout (para evitar cuelgues en Vercel)
+    try {
+      const redisPromise = this.redis.set(`session:${user.id}`, token, 'EX', 86400);
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Redis Timeout')), 3000));
+      await Promise.race([redisPromise, timeoutPromise]);
+    } catch (err: any) {
+      this.logger.warn(`No se pudo guardar la sesión en Redis: ${err.message}`);
+      // No lanzamos error para que el usuario pueda iniciar sesión aunque Redis falle
+    }
 
     return {
       token,
@@ -246,8 +252,14 @@ export class AuthController {
       await this.sql`UPDATE user_credentials SET counter = ${verification.authenticationInfo.newCounter} WHERE id = ${dbCredential.id}`;
       const token = this.jwtService.sign({ sub: user.id, username: user.username, email: user.email });
       
-      // GUARDAR SESIÓN EN REDIS
-      await this.redis.set(`session:${user.id}`, token, 'EX', 86400);
+      // GUARDAR SESIÓN EN REDIS con Timeout
+      try {
+        const redisPromise = this.redis.set(`session:${user.id}`, token, 'EX', 86400);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Redis Timeout')), 3000));
+        await Promise.race([redisPromise, timeoutPromise]);
+      } catch (err: any) {
+        this.logger.warn(`No se pudo guardar la sesión en Redis (WebAuthn): ${err.message}`);
+      }
 
       return { verified: true, token, user: { id: user.id, username: user.username, email: user.email } };
     }
