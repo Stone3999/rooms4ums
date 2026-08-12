@@ -143,7 +143,12 @@ export class AuthController {
 
     const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
     const originUrl = new URL(origin);
-    const rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
+    
+    // Si el usuario puso una URL completa en RP_ID por error, le sacamos el hostname.
+    let rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
+    if (rpID.startsWith('http')) {
+      rpID = new URL(rpID).hostname;
+    }
 
     return await generateRegistrationOptions({
       rpName: 'ROOMS4UMS SYS',
@@ -165,7 +170,11 @@ export class AuthController {
     
     const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
     const originUrl = new URL(origin);
-    const rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
+    
+    let rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
+    if (rpID.startsWith('http')) {
+      rpID = new URL(rpID).hostname;
+    }
 
     const verification = await verifyRegistrationResponse({
       response: registrationResponse,
@@ -193,7 +202,11 @@ export class AuthController {
 
     const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
     const originUrl = new URL(origin);
-    const rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
+    
+    let rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
+    if (rpID.startsWith('http')) {
+      rpID = new URL(rpID).hostname;
+    }
 
     return await generateAuthenticationOptions({
       rpID: rpID,
@@ -215,7 +228,11 @@ export class AuthController {
 
     const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
     const originUrl = new URL(origin);
-    const rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
+    
+    let rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
+    if (rpID.startsWith('http')) {
+      rpID = new URL(rpID).hostname;
+    }
 
     const verification = await verifyAuthenticationResponse({
       response: authenticationResponse,
