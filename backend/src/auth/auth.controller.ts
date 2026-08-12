@@ -141,7 +141,9 @@ export class AuthController {
     const user = users[0];
     const userCredentials = await this.sql`SELECT credential_id FROM user_credentials WHERE user_id = ${userId}`;
 
-    const rpID = this.configService.get<string>('RP_ID') || req.hostname || 'localhost';
+    const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+    const originUrl = new URL(origin);
+    const rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
 
     return await generateRegistrationOptions({
       rpName: 'ROOMS4UMS SYS',
@@ -161,8 +163,9 @@ export class AuthController {
     const userId = req.user.userId;
     const { registrationResponse, expectedChallenge } = body;
     
-    const rpID = this.configService.get<string>('RP_ID') || req.hostname || 'localhost';
     const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+    const originUrl = new URL(origin);
+    const rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
 
     const verification = await verifyRegistrationResponse({
       response: registrationResponse,
@@ -188,7 +191,9 @@ export class AuthController {
     if (users.length === 0) throw new BadRequestException('User not found');
     const userCredentials = await this.sql`SELECT credential_id FROM user_credentials WHERE user_id = ${users[0].id}`;
 
-    const rpID = this.configService.get<string>('RP_ID') || req.hostname || 'localhost';
+    const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+    const originUrl = new URL(origin);
+    const rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
 
     return await generateAuthenticationOptions({
       rpID: rpID,
@@ -208,8 +213,9 @@ export class AuthController {
     if (credentials.length === 0) throw new BadRequestException('Credential not found');
     const dbCredential = credentials[0];
 
-    const rpID = this.configService.get<string>('RP_ID') || req.hostname || 'localhost';
     const origin = this.configService.get<string>('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+    const originUrl = new URL(origin);
+    const rpID = this.configService.get<string>('RP_ID') || originUrl.hostname;
 
     const verification = await verifyAuthenticationResponse({
       response: authenticationResponse,
