@@ -13,6 +13,7 @@ import { VoiceModule } from './voice/voice.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { ForumModule } from './forum/forum.module';
 import { SearchModule } from './search/search.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SearchModule } from './search/search.module';
     RoomsModule,
     ForumModule,
     SearchModule,
+    AdminModule,
   ],
   controllers: [AppController, DiagnosticController],
   providers: [AppService],

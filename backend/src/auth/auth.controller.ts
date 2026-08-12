@@ -132,34 +132,6 @@ export class AuthController {
     return users[0];
   }
 
-  // --- ADMIN ENDPOINTS ---
-
-  @Get('admin/users')
-  @UseGuards(AuthGuard('jwt'))
-  async getAllUsers() {
-    return await this.sql`
-      SELECT id, email, username, role, status, created_at FROM users 
-      ORDER BY created_at DESC
-    `;
-  }
-
-  @Post('admin/users/:id/status')
-  @UseGuards(AuthGuard('jwt'))
-  async updateUserStatus(@Param('id') id: string, @Body('status') status: string) {
-    return await this.sql`
-      UPDATE users SET status = ${status} WHERE id = ${id}
-      RETURNING id, username, status
-    `;
-  }
-
-  @Delete('admin/users/:id')
-  @UseGuards(AuthGuard('jwt'))
-  async deleteUser(@Param('id') id: string) {
-    await this.sql`DELETE FROM user_credentials WHERE user_id = ${id}`;
-    await this.sql`DELETE FROM users WHERE id = ${id}`;
-    return { message: 'Usuario eliminado correctamente' };
-  }
-
   // --- WEBAUTHN ENDPOINTS ---
   @UseGuards(AuthGuard('jwt'))
   async generateRegOptions(@Request() req: any) {
