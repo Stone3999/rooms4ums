@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { LanguageService } from '../../core/services/language.service';
+import { ForumService, Post } from '../../core/services/forum.service';
 
 @Component({
   selector: 'app-popular',
@@ -10,38 +11,51 @@ import { LanguageService } from '../../core/services/language.service';
   templateUrl: './popular.component.html',
   styleUrl: './popular.component.css'
 })
-export class PopularComponent {
+export class PopularComponent implements OnInit {
   private router = inject(Router);
   public langService = inject(LanguageService);
+  private forumService = inject(ForumService);
 
-  // Datos mock agrupados por "Room"
-  popularRooms = [
-    {
-      id: 'ajedrez',
-      name: 'AJEDREZ',
-      posts: [
-        { id: 101, title: 'EL MEJOR GAMBITO DE REY', author: 'Magnus_90', likes: 156, dislikes: 12 },
-        { id: 102, title: 'TORNEO DE PRIMAVERA', author: 'ChessMaster', likes: 89, dislikes: 3 }
-      ]
-    },
-    {
-      id: 'gaming',
-      name: 'GAMING',
-      posts: [
-        { id: 201, title: 'REVIEW: ELDEN RING DLC', author: 'GamerX', likes: 420, dislikes: 15 },
-        { id: 202, title: 'BUSCO GENTE PARA RAID', author: 'NoobPro', likes: 45, dislikes: 0 }
-      ]
-    },
-    {
-      id: 'tech',
-      name: 'TECNOLOGIA',
-      posts: [
-        { id: 301, title: 'NUEVA IA PARA CODIGO', author: 'DevLover', likes: 312, dislikes: 8 }
-      ]
+  public popularRooms: any[] = [];
+  public isLoading = true;
+
+  async ngOnInit() {
+    try {
+      const posts = await this.forumService.getPopular(20);
+      this.groupPostsByRoom(posts);
+    } catch (error) {
+      console.error('Error fetching popular posts:', error);
+    } finally {
+      this.isLoading = false;
     }
-  ];
+  }
 
-  goToPost(roomId: string, postId: number) {
+  private groupPostsByRoom(posts: Post[]) {
+    const grouped = new Map<string, any>();
+    
+    for (const post of posts) {
+      if (!grouped.has(post.roomId)) {
+        grouped.set(post.roomId, {
+          id: post.roomId,
+          name: post.roomId.toUpperCase(),
+          posts: []
+        });
+      }
+      
+      const room = grouped.get(post.roomId);
+      room.posts.push({
+        id: post._id,
+        title: post.title,
+        author: post.authorName,
+        likes: post.viewCount, // Using viewCount as a proxy for popularity for now
+        dislikes: 0
+      });
+    }
+
+    this.popularRooms = Array.from(grouped.values());
+  }
+
+  goToPost(roomId: string, postId: string) {
     this.router.navigate(['/foro', roomId, 'post', postId]);
   }
 }
