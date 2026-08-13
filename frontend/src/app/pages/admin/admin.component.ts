@@ -39,16 +39,17 @@ import { RoomService, Room } from '../../core/services/room.service';
             <tr *ngFor="let user of users()">
               <td>{{ user.username }}</td>
               <td>{{ user.email }}</td>
-              <td>{{ user.role }}</td>
+              <td>{{ user.role_name || 'SIN ROL' }}</td>
               <td>
-                <span [class.status-active]="user.status === 'ONLINE'" 
-                      [class.status-suspended]="user.status === 'SUSPENDED'">
-                  {{ user.status }}
+                <span [class.status-active]="user.is_active" 
+                      [class.status-suspended]="!user.is_active">
+                  {{ user.is_active ? 'ACTIVE' : 'SUSPENDED' }}
                 </span>
               </td>
               <td class="actions">
+                <button class="win-button small" (click)="openUserModal(user)">EDITAR</button>
                 <button class="win-button small" (click)="toggleUserStatus(user)">
-                  {{ user.status === 'SUSPENDED' ? 'ACTIVAR' : 'SUSPENDER' }}
+                  {{ user.is_active ? 'SUSPENDER' : 'ACTIVAR' }}
                 </button>
                 <button class="win-button small danger" (click)="deleteUser(user)">BORRAR</button>
               </td>
@@ -89,6 +90,37 @@ import { RoomService, Room } from '../../core/services/room.service';
         </table>
       </div>
 
+      <!-- MODAL PARA USUARIOS -->
+      <div class="modal-overlay" *ngIf="showUserModal">
+        <div class="win-panel modal-content">
+          <div class="win-title-bar">
+            <span>EDITAR USUARIO</span>
+            <button class="win-button close" (click)="closeUserModal()">X</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>USERNAME:</label>
+              <input type="text" [(ngModel)]="userForm.username" class="win-input">
+            </div>
+            <div class="form-group">
+              <label>EMAIL:</label>
+              <input type="text" [(ngModel)]="userForm.email" class="win-input">
+            </div>
+            <div class="form-group">
+              <label>ROL:</label>
+              <select [(ngModel)]="userForm.role_id" class="win-input">
+                <option [ngValue]="null">SIN ROL</option>
+                <option *ngFor="let r of availableRoles" [value]="r.id">{{ r.name }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="win-button" (click)="closeUserModal()">CANCELAR</button>
+            <button class="win-button accent" (click)="saveUser()">GUARDAR</button>
+          </div>
+        </div>
+      </div>
+
       <!-- MODAL PARA ROOMS -->
       <div class="modal-overlay" *ngIf="showRoomModal">
         <div class="win-panel modal-content">
@@ -110,8 +142,15 @@ import { RoomService, Room } from '../../core/services/room.service';
               <textarea [(ngModel)]="roomForm.description" class="win-input"></textarea>
             </div>
             <div class="form-group">
-              <label>ICONO (pixelart-icons):</label>
-              <input type="text" [(ngModel)]="roomForm.icon" class="win-input" placeholder="pixelart-icons-font-door">
+              <label>ICONO (Selecciona uno):</label>
+              <div class="icon-grid">
+                <div *ngFor="let ic of availableIcons" 
+                     class="icon-cell" 
+                     [class.selected]="roomForm.icon === ic"
+                     (click)="roomForm.icon = ic">
+                  <i [class]="ic"></i>
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label>ESTADO:</label>
@@ -174,6 +213,12 @@ import { RoomService, Room } from '../../core/services/room.service';
     .form-group label { font-size: 0.7rem; color: var(--accent-color); }
     .win-input { background: #000; border: 1px solid #333; color: #fff; padding: 8px; outline: none; }
     .modal-footer { padding: 15px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #222; }
+    
+    .icon-grid { display: flex; flex-wrap: wrap; gap: 5px; max-height: 120px; overflow-y: auto; background: #050505; border: 1px solid #333; padding: 5px; }
+    .icon-cell { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid transparent; }
+    .icon-cell:hover { background: #222; }
+    .icon-cell.selected { border-color: var(--accent-color); background: #1a0a00; color: var(--accent-color); }
+    .icon-cell i { font-size: 1.2rem; }
   `]
 })
 export class AdminComponent implements OnInit {
@@ -183,6 +228,22 @@ export class AdminComponent implements OnInit {
   activeTab = 'users';
   users = signal<any[]>([]);
   rooms = signal<Room[]>([]);
+
+  // User Modal logic
+  showUserModal = false;
+  editingUser: any = null;
+  availableRoles: any[] = [];
+  userForm = { username: '', email: '', role_id: null };
+
+  // Icons catalog
+  availableIcons = [
+    'pixelart-icons-font-door', 'pixelart-icons-font-chat', 'pixelart-icons-font-gamepad',
+    'pixelart-icons-font-heart', 'pixelart-icons-font-music', 'pixelart-icons-font-book',
+    'pixelart-icons-font-camera', 'pixelart-icons-font-briefcase', 'pixelart-icons-font-users',
+    'pixelart-icons-font-map', 'pixelart-icons-font-moon', 'pixelart-icons-font-sun',
+    'pixelart-icons-font-star', 'pixelart-icons-font-cup', 'pixelart-icons-font-gift',
+    'pixelart-icons-font-bug', 'pixelart-icons-font-code', 'pixelart-icons-font-shield'
+  ];
 
   // Modal logic
   showRoomModal = false;
@@ -204,6 +265,15 @@ export class AdminComponent implements OnInit {
   ngOnInit() {
     this.loadUsers();
     this.loadRooms();
+    this.loadRoles();
+  }
+
+  async loadRoles() {
+    try {
+      this.availableRoles = await this.authService.getAllRoles();
+    } catch (e) {
+      console.error('Error loading roles:', e);
+    }
   }
 
   setTab(tab: string) {
@@ -221,12 +291,38 @@ export class AdminComponent implements OnInit {
   }
 
   async toggleUserStatus(user: any) {
-    const newStatus = user.status === 'SUSPENDED' ? 'OFFLINE' : 'SUSPENDED';
+    const newStatus = user.is_active ? 'SUSPENDED' : 'ACTIVE';
     try {
       await this.authService.updateUserStatus(user.id, newStatus);
       this.loadUsers();
     } catch (error) {
       alert('Error al actualizar estado del usuario');
+    }
+  }
+
+  openUserModal(user: any) {
+    this.editingUser = user;
+    this.userForm = {
+      username: user.username,
+      email: user.email,
+      role_id: user.role_id || null
+    };
+    this.showUserModal = true;
+  }
+
+  closeUserModal() {
+    this.showUserModal = false;
+    this.editingUser = null;
+  }
+
+  async saveUser() {
+    if (!this.editingUser) return;
+    try {
+      await this.authService.updateUser(this.editingUser.id, this.userForm);
+      this.closeUserModal();
+      this.loadUsers();
+    } catch (error: any) {
+      alert('Error al guardar el usuario: ' + (error.error?.message || error.message));
     }
   }
 
@@ -286,8 +382,10 @@ export class AdminComponent implements OnInit {
       }
       this.closeRoomModal();
       this.loadRooms();
-    } catch (error) {
-      alert('Error al guardar la room. Asegúrate de que el slug sea único.');
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.error?.message || error.message;
+      alert('Error al guardar la room: ' + msg);
     }
   }
 

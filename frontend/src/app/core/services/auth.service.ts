@@ -143,6 +143,18 @@ export class AuthService {
     );
   }
 
+  async getAllRoles() {
+    return firstValueFrom(
+      this.http.get<any[]>(`${this.adminUrl}/roles`, { headers: this.getHeaders() })
+    );
+  }
+
+  async updateUser(userId: string, data: any) {
+    return firstValueFrom(
+      this.http.put<any>(`${this.adminUrl}/users/${userId}`, data, { headers: this.getHeaders() })
+    );
+  }
+
   async updateUserStatus(userId: string, status: string) {
     // El backend espera isActive, status es 'ACTIVE' | 'BANNED' etc, adaptarlo
     const isActive = status === 'ACTIVE';
