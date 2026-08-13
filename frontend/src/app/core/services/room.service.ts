@@ -23,11 +23,9 @@ export class RoomService {
   private apiUrl = '';
 
   constructor() {
-    if (isPlatformBrowser(this.platformId)) {
-      // Forzamos el uso del backend en Render
-      const baseUrl = 'https://rooms4ums.onrender.com';
-      this.apiUrl = `${baseUrl}/api/rooms`;
-    }
+    // Forzamos el uso del backend en Render
+    const baseUrl = 'https://rooms4ums.onrender.com';
+    this.apiUrl = `${baseUrl}/api/rooms`;
   }
 
   private getHeaders() {

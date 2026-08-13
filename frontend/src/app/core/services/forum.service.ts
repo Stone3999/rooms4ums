@@ -36,11 +36,9 @@ export class ForumService {
   private apiUrl = '';
 
   constructor() {
-    if (isPlatformBrowser(this.platformId)) {
-      // Forzamos el uso del backend en Render
-      const baseUrl = 'https://rooms4ums.onrender.com';
-      this.apiUrl = `${baseUrl}/api/forum`;
-    }
+    // Forzamos el uso del backend en Render
+    const baseUrl = 'https://rooms4ums.onrender.com';
+    this.apiUrl = `${baseUrl}/api/forum`;
   }
 
   private getHeaders() {

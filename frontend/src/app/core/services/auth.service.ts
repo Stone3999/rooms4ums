@@ -15,11 +15,11 @@ export class AuthService {
   get isLoggedIn() { return this._isLoggedIn.asReadonly(); }
 
   constructor() {
-    if (isPlatformBrowser(this.platformId)) {
-      // Forzamos el uso del backend en Render para evitar problemas de red local (como en la uni)
-      const baseUrl = 'https://rooms4ums.onrender.com';
-      this.apiUrl = `${baseUrl}/api/auth`;
+    // Forzamos el uso del backend en Render (ahora también para SSR)
+    const baseUrl = 'https://rooms4ums.onrender.com';
+    this.apiUrl = `${baseUrl}/api/auth`;
 
+    if (isPlatformBrowser(this.platformId)) {
       const token = localStorage.getItem('token');
       this._isLoggedIn.set(!!token);
     }
