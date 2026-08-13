@@ -103,6 +103,24 @@ export class LanguageService {
       ADVANCED_SEARCH: 'BÚSQUEDA AVANZADA',
       SEARCH_PLACEHOLDER: 'Buscar archivos o posts...',
       
+      // Rules
+      RULES_BANNER: 'SISTEMA DE MONITOREO ACTIVO. LEA CON ATENCIÓN.',
+      RULES_TITLE: 'REGLAS DEL SISTEMA',
+      RULE_SANCTION: 'SANCIONES',
+      RULES_FOOTER: 'El desconocimiento de las reglas no exime de su cumplimiento.',
+      RULE_1_NAME: 'RESPETO MÚTUO',
+      RULE_1_DESC: 'No se permite el acoso, la discriminación ni el discurso de odio.',
+      RULE_1_CONS: 'Baneo permanente de la plataforma.',
+      RULE_2_NAME: 'NO SPAM',
+      RULE_2_DESC: 'Evita publicaciones repetitivas o promociones no autorizadas.',
+      RULE_2_CONS: 'Silencio (Mute) por 7 días.',
+      RULE_3_NAME: 'CONTENIDO SEGURO (SFW)',
+      RULE_3_DESC: 'No compartir contenido explícito o gore en los foros.',
+      RULE_3_CONS: 'Eliminación del post y suspensión temporal.',
+      RULE_4_NAME: 'CANALES DE VOZ',
+      RULE_4_DESC: 'No saturar el micrófono ni interrumpir en canales interactivos.',
+      RULE_4_CONS: 'Expulsión de los canales de voz.',
+
       // Voice Chat Extra
       GLOBAL_VOICE_CHATS: 'CHATS DE VOZ GLOBALES',
       VOICE_CHATS: 'CHATS DE VOZ',
