@@ -168,6 +168,10 @@ import { RoomService, Room } from '../../core/services/room.service';
                 <option value="ARCHIVED">ARCHIVED</option>
               </select>
             </div>
+            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 15px;">
+              <label style="margin: 0;">PROTOCOLO INTERACTIVO (Apps/Juegos):</label>
+              <input type="checkbox" [(ngModel)]="roomForm.is_interactive" style="width: 16px; height: 16px; accent-color: var(--accent-color);">
+            </div>
           </div>
           <div class="modal-footer">
             <button class="win-button" (click)="closeRoomModal()">CANCELAR</button>
@@ -261,12 +265,14 @@ export class AdminComponent implements OnInit {
     description: string;
     icon: string;
     status: 'ACTIVE' | 'MAINTENANCE' | 'CONSTRUCTION' | 'ARCHIVED';
+    is_interactive: boolean;
   } = {
     name: '',
     slug: '',
     description: '',
     icon: 'pixelart-icons-font-door',
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    is_interactive: false
   };
 
   ngOnInit() {
@@ -375,7 +381,8 @@ export class AdminComponent implements OnInit {
         slug: room.slug,
         description: room.description,
         icon: room.icon || 'pixelart-icons-font-door',
-        status: room.status
+        status: room.status,
+        is_interactive: room.is_interactive || false
       };
     } else {
       this.editingRoom = null;
@@ -384,7 +391,8 @@ export class AdminComponent implements OnInit {
         slug: '',
         description: '',
         icon: 'pixelart-icons-font-door',
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        is_interactive: false
       };
     }
     this.showRoomModal = true;
