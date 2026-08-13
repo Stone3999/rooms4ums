@@ -13,11 +13,6 @@ import { FormsModule } from '@angular/forms';
     <div class="search-page win-panel">
       <div class="win-title-bar">
         <div class="win-title">{{ langService.translate('ADVANCED_SEARCH') }}</div>
-        <div class="win-controls">
-          <button class="win-button minimize">_</button>
-          <button class="win-button maximize">□</button>
-          <button class="win-button close">X</button>
-        </div>
       </div>
 
       <div class="search-content">

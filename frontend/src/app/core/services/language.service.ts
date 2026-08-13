@@ -89,6 +89,20 @@ export class LanguageService {
       BANNER_BTN: 'CONFIGURAR AHORA',
       CONFIG_ACCOUNT: 'CONFIGURA TU CUENTA PARA ACTIVAR LA SEGURIDAD BIOMÉTRICA.',
       
+      // Ayuda / Help
+      HELP_ROOMS_DESC: 'Cómo navegar entre las diferentes salas del sistema.',
+      HELP_ROOMS_LONG: 'Usa el Selector de Rooms en el menú principal para filtrar el contenido. Cada Room es un espacio independiente con posts, archivos y reglas propias.',
+      HELP_POSTS_DESC: 'Aprende a publicar mensajes y compartir archivos.',
+      HELP_POSTS_LONG: 'Para publicar, ve a una Room y haz clic en "NUEVO POST". Puedes adjuntar imágenes o documentos. Usa el markdown para formatear tu texto.',
+      HELP_VOICE_DESC: 'Conéctate a los canales de voz en tiempo real.',
+      HELP_VOICE_LONG: 'Entra a la sección "Canales de Voz". Verás una lista de frecuencias disponibles. Asegúrate de tener permisos de micrófono activados.',
+      HELP_MEDIA_DESC: 'Formatos soportados y límites de subida.',
+      HELP_MEDIA_LONG: 'Soportamos JPG, PNG y GIF hasta 5MB. Los archivos se alojan en servidores distribuidos. El contenido inapropiado será purgado.',
+      
+      // Search
+      ADVANCED_SEARCH: 'BÚSQUEDA AVANZADA',
+      SEARCH_PLACEHOLDER: 'Buscar archivos o posts...',
+      
       // Voice Chat Extra
       GLOBAL_VOICE_CHATS: 'CHATS DE VOZ GLOBALES',
       VOICE_CHATS: 'CHATS DE VOZ',
