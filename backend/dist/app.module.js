@@ -20,6 +20,9 @@ const app_service_1 = require("./app.service");
 const diagnostic_controller_1 = require("./diagnostic/diagnostic.controller");
 const voice_module_1 = require("./voice/voice.module");
 const rooms_module_1 = require("./rooms/rooms.module");
+const forum_module_1 = require("./forum/forum.module");
+const search_module_1 = require("./search/search.module");
+const admin_module_1 = require("./admin/admin.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -43,6 +46,9 @@ exports.AppModule = AppModule = __decorate([
             }),
             voice_module_1.VoiceModule,
             rooms_module_1.RoomsModule,
+            forum_module_1.ForumModule,
+            search_module_1.SearchModule,
+            admin_module_1.AdminModule,
         ],
         controllers: [app_controller_1.AppController, diagnostic_controller_1.DiagnosticController],
         providers: [app_service_1.AppService],

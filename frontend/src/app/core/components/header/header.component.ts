@@ -48,7 +48,7 @@ import { LanguageService, Language } from '../../services/language.service';
           <button class="win-button" routerLink="/perfil">
             <i class="pixelart-icons-font-user"></i> {{ langService.translate('PROFILE') }}
           </button>
-          <button class="win-button" routerLink="/admin">
+          <button class="win-button" routerLink="/admin" *ngIf="authService.isAdmin()">
             <i class="pixelart-icons-font-command"></i> {{ langService.translate('ADMIN') }}
           </button>
           <button class="win-button" (click)="logout()">

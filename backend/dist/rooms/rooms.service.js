@@ -58,7 +58,7 @@ let RoomsService = class RoomsService {
         description = ${description}, 
         icon = ${icon}, 
         status = ${status}, 
-        is_interactive = ${is_interactive},
+        is_interactive = ${is_interactive || false},
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *

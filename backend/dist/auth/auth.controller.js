@@ -132,7 +132,14 @@ let AuthController = AuthController_1 = class AuthController {
             throw new common_1.UnauthorizedException('Credenciales inválidas');
         const payload = { sub: user.id, username: user.username, email: user.email };
         const token = this.jwtService.sign(payload);
-        await this.redis.set(`session:${user.id}`, token, 'EX', 86400);
+        try {
+            const redisPromise = this.redis.set(`session:${user.id}`, token, 'EX', 86400);
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Redis Timeout')), 3000));
+            await Promise.race([redisPromise, timeoutPromise]);
+        }
+        catch (err) {
+            this.logger.warn(`No se pudo guardar la sesión en Redis: ${err.message}`);
+        }
         return {
             token,
             user: { id: user.id, username: user.username, email: user.email }
@@ -146,7 +153,7 @@ let AuthController = AuthController_1 = class AuthController {
     async getProfile(req) {
         const userId = req.user.userId;
         const users = await this.sql `
-      SELECT id, email, username, bio, role, created_at,
+      SELECT id, email, username, bio, role, status, created_at,
              COALESCE(creds.has_biometrics, false) as has_biometrics
       FROM users 
       LEFT JOIN (
@@ -165,9 +172,15 @@ let AuthController = AuthController_1 = class AuthController {
         const users = await this.sql `SELECT id, email, username FROM users WHERE id = ${userId}`;
         const user = users[0];
         const userCredentials = await this.sql `SELECT credential_id FROM user_credentials WHERE user_id = ${userId}`;
+        const origin = this.configService.get('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+        const originUrl = new URL(origin);
+        let rpID = this.configService.get('RP_ID') || originUrl.hostname;
+        if (rpID.startsWith('http')) {
+            rpID = new URL(rpID).hostname;
+        }
         return await (0, server_1.generateRegistrationOptions)({
             rpName: 'ROOMS4UMS SYS',
-            rpID: this.rpID,
+            rpID: rpID,
             userID: Buffer.from(user.id),
             userName: user.email,
             userDisplayName: user.username,
@@ -179,11 +192,17 @@ let AuthController = AuthController_1 = class AuthController {
     async verifyReg(req, body) {
         const userId = req.user.userId;
         const { registrationResponse, expectedChallenge } = body;
+        const origin = this.configService.get('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+        const originUrl = new URL(origin);
+        let rpID = this.configService.get('RP_ID') || originUrl.hostname;
+        if (rpID.startsWith('http')) {
+            rpID = new URL(rpID).hostname;
+        }
         const verification = await (0, server_1.verifyRegistrationResponse)({
             response: registrationResponse,
             expectedChallenge,
-            expectedOrigin: this.origin,
-            expectedRPID: this.rpID,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
         });
         if (verification.verified && verification.registrationInfo) {
             const { id, publicKey, counter } = verification.registrationInfo.credential;
@@ -195,18 +214,24 @@ let AuthController = AuthController_1 = class AuthController {
         }
         return { verified: false };
     }
-    async generateAuthOptions(identifier) {
+    async generateAuthOptions(identifier, req) {
         const users = await this.sql `SELECT id FROM users WHERE email = ${identifier} OR username = ${identifier}`;
         if (users.length === 0)
             throw new common_1.BadRequestException('User not found');
         const userCredentials = await this.sql `SELECT credential_id FROM user_credentials WHERE user_id = ${users[0].id}`;
+        const origin = this.configService.get('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+        const originUrl = new URL(origin);
+        let rpID = this.configService.get('RP_ID') || originUrl.hostname;
+        if (rpID.startsWith('http')) {
+            rpID = new URL(rpID).hostname;
+        }
         return await (0, server_1.generateAuthenticationOptions)({
-            rpID: this.rpID,
+            rpID: rpID,
             allowCredentials: userCredentials.map((c) => ({ id: c.credential_id, type: 'public-key' })),
             userVerification: 'preferred',
         });
     }
-    async verifyAuth(body) {
+    async verifyAuth(body, req) {
         const { identifier, authenticationResponse, expectedChallenge } = body;
         const users = await this.sql `SELECT id, email, username FROM users WHERE email = ${identifier} OR username = ${identifier}`;
         if (users.length === 0)
@@ -216,17 +241,30 @@ let AuthController = AuthController_1 = class AuthController {
         if (credentials.length === 0)
             throw new common_1.BadRequestException('Credential not found');
         const dbCredential = credentials[0];
+        const origin = this.configService.get('ORIGIN') || req.headers?.origin || `http://localhost:4200`;
+        const originUrl = new URL(origin);
+        let rpID = this.configService.get('RP_ID') || originUrl.hostname;
+        if (rpID.startsWith('http')) {
+            rpID = new URL(rpID).hostname;
+        }
         const verification = await (0, server_1.verifyAuthenticationResponse)({
             response: authenticationResponse,
             expectedChallenge,
-            expectedOrigin: this.origin,
-            expectedRPID: this.rpID,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
             credential: { id: dbCredential.credential_id, publicKey: Buffer.from(dbCredential.public_key, 'base64'), counter: dbCredential.counter },
         });
         if (verification.verified) {
             await this.sql `UPDATE user_credentials SET counter = ${verification.authenticationInfo.newCounter} WHERE id = ${dbCredential.id}`;
             const token = this.jwtService.sign({ sub: user.id, username: user.username, email: user.email });
-            await this.redis.set(`session:${user.id}`, token, 'EX', 86400);
+            try {
+                const redisPromise = this.redis.set(`session:${user.id}`, token, 'EX', 86400);
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Redis Timeout')), 3000));
+                await Promise.race([redisPromise, timeoutPromise]);
+            }
+            catch (err) {
+                this.logger.warn(`No se pudo guardar la sesión en Redis (WebAuthn): ${err.message}`);
+            }
             return { verified: true, token, user: { id: user.id, username: user.username, email: user.email } };
         }
         return { verified: false };
@@ -271,8 +309,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getProfile", null);
 __decorate([
-    (0, common_1.Post)('generate-registration-options'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)('generate-registration-options'),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -290,15 +328,17 @@ __decorate([
 __decorate([
     (0, common_1.Post)('generate-authentication-options'),
     __param(0, (0, common_1.Body)('identifier')),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "generateAuthOptions", null);
 __decorate([
     (0, common_1.Post)('verify-authentication'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyAuth", null);
 exports.AuthController = AuthController = AuthController_1 = __decorate([

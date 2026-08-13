@@ -35,8 +35,8 @@ export declare class AuthController {
     verifyReg(req: any, body: any): Promise<{
         verified: boolean;
     }>;
-    generateAuthOptions(identifier: string): Promise<import("@simplewebauthn/server").PublicKeyCredentialRequestOptionsJSON>;
-    verifyAuth(body: any): Promise<{
+    generateAuthOptions(identifier: string, req: any): Promise<import("@simplewebauthn/server").PublicKeyCredentialRequestOptionsJSON>;
+    verifyAuth(body: any, req: any): Promise<{
         verified: boolean;
         token: string;
         user: {

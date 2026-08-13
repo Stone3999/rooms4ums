@@ -12,7 +12,9 @@ export class AuthService {
   private apiUrl = '';
 
   private _isLoggedIn = signal<boolean>(false);
+  private _isAdmin = signal<boolean>(false);
   get isLoggedIn() { return this._isLoggedIn.asReadonly(); }
+  get isAdmin() { return this._isAdmin.asReadonly(); }
 
   constructor() {
     // Forzamos el uso del backend en Render (ahora también para SSR)
@@ -21,7 +23,19 @@ export class AuthService {
 
     if (isPlatformBrowser(this.platformId)) {
       const token = localStorage.getItem('token');
-      this._isLoggedIn.set(!!token);
+      if (token) {
+        this._isLoggedIn.set(true);
+        this.checkAdminStatus();
+      }
+    }
+  }
+
+  private async checkAdminStatus() {
+    try {
+      const profile = await this.getProfile();
+      this._isAdmin.set(profile.role === 'ADMIN' || profile.role_name === 'ADMIN');
+    } catch {
+      this._isAdmin.set(false);
     }
   }
 
@@ -74,6 +88,7 @@ export class AuthService {
     if (response.token && isPlatformBrowser(this.platformId)) {
       this._isLoggedIn.set(true);
       localStorage.setItem('token', response.token);
+      this.checkAdminStatus();
     }
     return response;
   }
@@ -113,6 +128,7 @@ export class AuthService {
     if (response.token && isPlatformBrowser(this.platformId)) {
       this._isLoggedIn.set(true);
       localStorage.setItem('token', response.token);
+      this.checkAdminStatus();
     }
     return response;
   }
@@ -128,6 +144,7 @@ export class AuthService {
     } finally {
       // Pase lo que pase, limpiamos el cliente
       this._isLoggedIn.set(false);
+      this._isAdmin.set(false);
       if (isPlatformBrowser(this.platformId)) {
         localStorage.removeItem('token');
       }
