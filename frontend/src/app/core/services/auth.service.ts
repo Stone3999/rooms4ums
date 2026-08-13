@@ -135,22 +135,25 @@ export class AuthService {
   }
 
   // --- ADMIN FUNCTIONS ---
+  private adminUrl = 'https://rooms4ums.onrender.com/api/admin';
 
   async getAllUsers() {
     return firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/admin/users`, { headers: this.getHeaders() })
+      this.http.get<any[]>(`${this.adminUrl}/users`, { headers: this.getHeaders() })
     );
   }
 
   async updateUserStatus(userId: string, status: string) {
+    // El backend espera isActive, status es 'ACTIVE' | 'BANNED' etc, adaptarlo
+    const isActive = status === 'ACTIVE';
     return firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/admin/users/${userId}/status`, { status }, { headers: this.getHeaders() })
+      this.http.put<any>(`${this.adminUrl}/users/${userId}/status`, { is_active: isActive }, { headers: this.getHeaders() })
     );
   }
 
   async deleteUser(userId: string) {
     return firstValueFrom(
-      this.http.delete<any>(`${this.apiUrl}/admin/users/${userId}`, { headers: this.getHeaders() })
+      this.http.delete<any>(`${this.adminUrl}/users/${userId}`, { headers: this.getHeaders() })
     );
   }
 }
