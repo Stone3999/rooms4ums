@@ -22,7 +22,10 @@ import { RoomService, Room } from '../../core/services/room.service';
       <div class="tab-content win-panel" *ngIf="activeTab === 'users'">
         <div class="header-row">
           <h3 class="win-title mini">GESTIÓN DE USUARIOS</h3>
-          <button class="win-button" (click)="loadUsers()"><i class="pixelart-icons-font-reload"></i> REFRESCAR</button>
+          <div>
+            <button class="win-button" (click)="loadUsers()"><i class="pixelart-icons-font-reload"></i> REFRESCAR</button>
+            <button class="win-button accent" style="margin-left:10px" (click)="openUserModal(null)"><i class="pixelart-icons-font-plus"></i> NUEVO USUARIO</button>
+          </div>
         </div>
         
         <table class="win-table">
@@ -94,17 +97,21 @@ import { RoomService, Room } from '../../core/services/room.service';
       <div class="modal-overlay" *ngIf="showUserModal">
         <div class="win-panel modal-content">
           <div class="win-title-bar">
-            <span>EDITAR USUARIO</span>
+            <span>{{ editingUser ? 'EDITAR USUARIO' : 'NUEVO USUARIO' }}</span>
             <button class="win-button close" (click)="closeUserModal()">X</button>
           </div>
           <div class="modal-body">
             <div class="form-group">
               <label>USERNAME:</label>
-              <input type="text" [(ngModel)]="userForm.username" class="win-input">
+              <input type="text" [(ngModel)]="userForm.username" class="win-input" [disabled]="editingUser">
             </div>
             <div class="form-group">
               <label>EMAIL:</label>
-              <input type="text" [(ngModel)]="userForm.email" class="win-input">
+              <input type="text" [(ngModel)]="userForm.email" class="win-input" [disabled]="editingUser">
+            </div>
+            <div class="form-group" *ngIf="!editingUser">
+              <label>CONTRASEÑA:</label>
+              <input type="password" [(ngModel)]="userForm.password" class="win-input">
             </div>
             <div class="form-group">
               <label>ROL:</label>
@@ -233,7 +240,7 @@ export class AdminComponent implements OnInit {
   showUserModal = false;
   editingUser: any = null;
   availableRoles: any[] = [];
-  userForm = { username: '', email: '', role_id: null };
+  userForm = { username: '', email: '', password: '', role_id: null };
 
   // Icons catalog
   availableIcons = [
@@ -300,13 +307,24 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  openUserModal(user: any) {
-    this.editingUser = user;
-    this.userForm = {
-      username: user.username,
-      email: user.email,
-      role_id: user.role_id || null
-    };
+  openUserModal(user?: any) {
+    if (user) {
+      this.editingUser = user;
+      this.userForm = {
+        username: user.username,
+        email: user.email,
+        password: '',
+        role_id: user.role_id || null
+      };
+    } else {
+      this.editingUser = null;
+      this.userForm = {
+        username: '',
+        email: '',
+        password: '',
+        role_id: null
+      };
+    }
     this.showUserModal = true;
   }
 
@@ -316,9 +334,12 @@ export class AdminComponent implements OnInit {
   }
 
   async saveUser() {
-    if (!this.editingUser) return;
     try {
-      await this.authService.updateUser(this.editingUser.id, this.userForm);
+      if (this.editingUser) {
+        await this.authService.updateUser(this.editingUser.id, this.userForm);
+      } else {
+        await this.authService.createUser(this.userForm);
+      }
       this.closeUserModal();
       this.loadUsers();
     } catch (error: any) {

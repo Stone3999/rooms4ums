@@ -149,6 +149,12 @@ export class AuthService {
     );
   }
 
+  async createUser(data: any) {
+    return firstValueFrom(
+      this.http.post<any>(`${this.adminUrl}/users`, data, { headers: this.getHeaders() })
+    );
+  }
+
   async updateUser(userId: string, data: any) {
     return firstValueFrom(
       this.http.put<any>(`${this.adminUrl}/users/${userId}`, data, { headers: this.getHeaders() })
