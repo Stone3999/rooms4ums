@@ -124,15 +124,16 @@ export class AuthController {
   async getProfile(@Request() req: any) {
     const userId = req.user.userId;
     const users = await this.sql`
-      SELECT id, email, username, bio, role, status, created_at,
+      SELECT u.id, u.email, u.username, u.bio, u.role, u.status, u.created_at, r.name as role_name,
              COALESCE(creds.has_biometrics, false) as has_biometrics
-      FROM users 
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
       LEFT JOIN (
         SELECT user_id, COUNT(*) > 0 as has_biometrics 
         FROM user_credentials 
         GROUP BY user_id
-      ) creds ON users.id = creds.user_id
-      WHERE users.id = ${userId}
+      ) creds ON u.id = creds.user_id
+      WHERE u.id = ${userId}
     `;
     if (users.length === 0) throw new BadRequestException('User not found');
     return users[0];
