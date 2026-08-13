@@ -52,7 +52,8 @@ import { LanguageService } from '../../core/services/language.service';
     </div>
   `,
   styles: [`
-    .post-create-container { width: 100%; min-width: 400px; max-width: 600px; margin: 0 auto; flex-shrink: 0; }
+    :host { display: block; width: 100%; max-width: 600px; }
+    .post-create-container { width: 100%; margin: 0 auto; flex-shrink: 0; }
     .form-content { padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; max-height: 80vh; }
     .field { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
     .field label { font-size: 0.7rem; font-weight: bold; color: var(--accent-color); }
